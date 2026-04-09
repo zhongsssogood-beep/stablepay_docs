@@ -14,35 +14,23 @@
         "tab": "Guides",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "产品文档",
             "pages": [
-              "index",
-              "quickstart",
-              "development"
+              "product-docs/checkout-suggestions",
+              "product-docs/payments",
+              "product-docs/subscriptions",
+              "product-docs/refunds",
+              "product-docs/currency-conversion",
+              "product-docs/account-management"
             ]
           },
           {
-            "group": "Customization",
+            "group": "SaaS平台接入",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
-            ]
-          },
-          {
-            "group": "Writing content",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
-            ]
-          },
-          {
-            "group": "AI tools",
-            "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "saas-integrations/shopify",
+              "saas-integrations/woocommerce",
+              "saas-integrations/shoplazza",
+              "saas-integrations/shopyy"
             ]
           }
         ]
@@ -51,37 +39,38 @@
         "tab": "API reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "支付服务",
             "pages": [
-              "api-reference/introduction"
+              "api-reference/payments/create",
+              "api-reference/payments/get",
+              "api-reference/payments/list"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "订阅服务",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api-reference/subscriptions/create",
+              "api-reference/subscriptions/get",
+              "api-reference/subscriptions/cancel"
+            ]
+          },
+          {
+            "group": "退款服务",
+            "pages": [
+              "api-reference/refunds/create",
+              "api-reference/refunds/get"
+            ]
+          },
+          {
+            "group": "Webhook",
+            "pages": [
+              "api-reference/webhooks/introduction",
+              "api-reference/webhooks/events"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
+    ]
   },
   "logo": {
     "light": "/logo/light.svg",
@@ -91,13 +80,13 @@
     "links": [
       {
         "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "href": "mailto:hi@stablepay.com"
       }
     ],
     "primary": {
       "type": "button",
       "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "href": "https://dashboard.stablepay.com"
     }
   },
   "contextual": {
@@ -114,9 +103,9 @@
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "x": "https://x.com/stablepay",
+      "github": "https://github.com/stablepay",
+      "linkedin": "https://linkedin.com/company/stablepay"
     }
   }
 }
