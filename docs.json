@@ -91,7 +91,7 @@
     ]
   },
   "logo": {
-    "light": "/logo/stablepay-logo.svg",
+    "light": "/logo/stablepay-logo.png",
     "dark": "/logo/dark.svg"
   },
   "navbar": {
