@@ -56,9 +56,7 @@
           {
             "group": "支付服务",
             "pages": [
-              "api-reference/payments/create",
-              "api-reference/payments/get",
-              "api-reference/payments/list"
+              "api-reference/payment_api_description"
             ]
           },
           {
