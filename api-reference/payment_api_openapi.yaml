@@ -1,0 +1,471 @@
+openapi: 3.0.3
+info:
+  title: StablePay Payment API
+  version: "2026-03-31"
+  description: |
+    External developer specification for StablePay Payment API.
+
+    Source: https://docs.stablepay.co/api/payment/
+    Last updated in source page: 2026-03-31 16:37
+  contact:
+    name: StablePay
+    url: https://docs.stablepay.co/api/payment/
+servers:
+  - url: https://api.stablepay.co
+    description: Production
+tags:
+  - name: Payment Service
+    description: Checkout session APIs
+security:
+  - bearerAuth: []
+paths:
+  /api/v1/checkout/sessions/create:
+    post:
+      tags:
+        - Payment Service
+      summary: Create payment session
+      description: Create a new payment session.
+      operationId: createCheckoutSession
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/XStablePayTimestamp"
+        - $ref: "#/components/parameters/XStablePayNonce"
+        - $ref: "#/components/parameters/XStablePaySignature"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCheckoutSessionRequest"
+            examples:
+              default:
+                value:
+                  amount: 6500
+                  currency: USD
+                  order_id: order_20250101001
+                  description: Purchase goods
+                  line_items:
+                    - price_data:
+                        currency: USD
+                        unit_amount: 5000
+                        product_data:
+                          name: Product A
+                          description: This is a description of Product A
+                      quantity: 1
+                  tax_amount: 1000
+                  shipping_amount: 500
+                  success_url: https://example.com/success
+                  cancel_url: https://example.com/cancel
+                  user_email: buyer@example.com
+                  metadata:
+                    customer_id: customer_123
+                    product_id: product_456
+      responses:
+        "200":
+          description: Created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentSession"
+              examples:
+                default:
+                  value:
+                    id: "20269128"
+                    amount_total: 10000
+                    currency: USD
+                    payment_status: pending
+                    created: 1735123456
+                    expires_at: 1735127056
+                    url: https://cashier.stablepay.co/pay/sess_xxxxxxxxxxxx
+                    line_items:
+                      - price_data:
+                          currency: usd
+                          unit_amount: 5000
+                          product_data:
+                            name: Product A
+                            description: This is a description of Product A
+                        quantity: 1
+                    tax_amount: 1000
+                    shipping_amount: 500
+                    exchange_rate: "7.2500"
+                    target_currency: USDT
+                    target_amount_total: 72500
+                    rate_locked_at: 1735123456
+                    metadata:
+                      user_email: buyer@example.com
+                      customer_id: customer_123
+                      product_id: product_456
+                      order_id: order_20250101001
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/checkout/sessions/{session_id}:
+    get:
+      tags:
+        - Payment Service
+      summary: Get payment session
+      description: Get payment session details by session id.
+      operationId: getCheckoutSession
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+        - $ref: "#/components/parameters/XStablePayTimestamp"
+        - $ref: "#/components/parameters/XStablePayNonce"
+        - $ref: "#/components/parameters/XStablePaySignature"
+      responses:
+        "200":
+          description: Query success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentSession"
+              examples:
+                default:
+                  value:
+                    id: sess_xxxxxxxxxxxx
+                    amount_total: 10000
+                    currency: USD
+                    payment_status: paid
+                    created: 1735123456
+                    expires_at: 1735127056
+                    url: https://cashier.stablepay.co/pay/cs_xxxxxxxxxxxx
+                    line_items:
+                      - price_data:
+                          currency: USD
+                          unit_amount: 5000
+                          product_data:
+                            name: Product A
+                            description: This is a description of Product A
+                        quantity: 1
+                      - price_data:
+                          currency: USD
+                          unit_amount: 5000
+                          product_data:
+                            name: Product B
+                            description: This is a description of Product B
+                        quantity: 1
+                    tax_amount: 1000
+                    shipping_amount: 500
+                    exchange_rate: "7.2500"
+                    target_currency: USDT
+                    target_amount_total: 72500
+                    rate_locked_at: 1735123456
+                    metadata:
+                      order_id: order_20250101001
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/checkout/sessions/{session_id}/cancel:
+    post:
+      tags:
+        - Payment Service
+      summary: Cancel payment session
+      description: Cancel (expire) the specified payment session.
+      operationId: cancelCheckoutSession
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+        - $ref: "#/components/parameters/XStablePayTimestamp"
+        - $ref: "#/components/parameters/XStablePayNonce"
+        - $ref: "#/components/parameters/XStablePaySignature"
+      responses:
+        "200":
+          description: Cancel success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentSession"
+              examples:
+                default:
+                  value:
+                    id: cs_xxxxxxxxxxxx
+                    amount_total: 10000
+                    currency: USD
+                    payment_status: pending
+                    created: 1735123456
+                    expires_at: 1735123456
+                    url: https://checkout.stablepay.co/pay/cs_xxxxxxxxxxxx
+                    tax_amount: 1000
+                    shipping_amount: 500
+                    exchange_rate: "7.2500"
+                    target_currency: USDT
+                    target_amount_total: 72500
+                    rate_locked_at: 1735123456
+        "400":
+          description: Bad request or already expired
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API Key
+
+  parameters:
+    SessionId:
+      name: session_id
+      in: path
+      required: true
+      description: Payment session ID
+      schema:
+        type: string
+
+    XStablePayTimestamp:
+      name: X-StablePay-Timestamp
+      in: header
+      required: true
+      description: Unix timestamp in seconds.
+      schema:
+        type: string
+        example: "1735123456"
+
+    XStablePayNonce:
+      name: X-StablePay-Nonce
+      in: header
+      required: true
+      description: Random nonce for replay protection.
+      schema:
+        type: string
+        example: "550e8400-e29b-41d4-a716-446655440000"
+
+    XStablePaySignature:
+      name: X-StablePay-Signature
+      in: header
+      required: true
+      description: HMAC-SHA256 signature. Format is a lowercase hex string.
+      schema:
+        type: string
+        example: "3c8f9d2a7b6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9f8e7d6c5b4a3f2e1d0"
+
+  schemas:
+    CreateCheckoutSessionRequest:
+      type: object
+      required:
+        - amount
+        - currency
+        - order_id
+      properties:
+        amount:
+          type: integer
+          format: int64
+          description: Payment amount in minor units.
+          example: 6500
+          minimum: 1
+        currency:
+          type: string
+          description: Currency code, e.g. USD.
+          example: USD
+        order_id:
+          type: string
+          description: Unique order ID in merchant system.
+          example: order_20250101001
+        description:
+          type: string
+          description: Order description.
+        line_items:
+          type: array
+          items:
+            $ref: "#/components/schemas/LineItem"
+        tax_amount:
+          type: integer
+          format: int64
+          description: Tax amount in minor units.
+          minimum: 0
+        shipping_amount:
+          type: integer
+          format: int64
+          description: Shipping amount in minor units.
+          minimum: 0
+        success_url:
+          type: string
+          format: uri
+        cancel_url:
+          type: string
+          format: uri
+        user_email:
+          type: string
+          format: email
+          description: End user email, persisted to metadata.user_email.
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+
+    PaymentSession:
+      type: object
+      required:
+        - id
+        - amount_total
+        - currency
+        - payment_status
+        - created
+        - expires_at
+      properties:
+        id:
+          type: string
+          description: Payment session ID.
+          example: cs_xxxxxxxxxxxx
+        amount_total:
+          type: integer
+          format: int64
+          description: Total amount in minor units.
+          example: 10000
+        currency:
+          type: string
+          description: Currency code.
+          example: USD
+        payment_status:
+          type: string
+          description: Payment status.
+          enum:
+            - pending
+            - paid
+            - failed
+            - expired
+            - canceled
+        created:
+          type: integer
+          format: int64
+          description: Creation timestamp (Unix seconds).
+        expires_at:
+          type: integer
+          format: int64
+          description: Expiration timestamp (Unix seconds).
+        url:
+          type: string
+          format: uri
+          description: Checkout URL.
+        line_items:
+          type: array
+          items:
+            $ref: "#/components/schemas/LineItem"
+        tax_amount:
+          type: integer
+          format: int64
+        shipping_amount:
+          type: integer
+          format: int64
+        exchange_rate:
+          type: string
+          description: Exchange rate value, if currency conversion exists.
+          example: "7.2500"
+        target_currency:
+          type: string
+          description: Settlement currency used by end user payment.
+          example: USDT
+        target_amount_total:
+          type: integer
+          format: int64
+          description: Settlement amount in minor units.
+        rate_locked_at:
+          type: integer
+          format: int64
+          description: Exchange rate lock timestamp (Unix seconds).
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+
+    LineItem:
+      type: object
+      required:
+        - price_data
+      properties:
+        price_data:
+          $ref: "#/components/schemas/PriceData"
+        quantity:
+          type: integer
+          default: 1
+          minimum: 1
+
+    PriceData:
+      type: object
+      required:
+        - currency
+        - unit_amount
+        - product_data
+      properties:
+        currency:
+          type: string
+          example: USD
+        unit_amount:
+          type: integer
+          format: int64
+          description: Unit amount in minor units.
+          example: 5000
+          minimum: 1
+        product_data:
+          $ref: "#/components/schemas/ProductData"
+
+    ProductData:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: Product A
+        description:
+          type: string
+
+    ErrorResponse:
+      type: object
+      description: Generic error response.
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+              example: Invalid request
