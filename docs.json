@@ -55,6 +55,7 @@
         "groups": [
           {
             "group": "支付服务",
+            "openapi": "api-reference/payment_api_openapi.yaml",
             "pages": [
               "api-reference/payment_api_description"
             ]
