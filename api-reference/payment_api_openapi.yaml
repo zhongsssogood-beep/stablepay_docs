@@ -4,12 +4,6 @@ info:
   version: "2026-03-31"
   description: |
     External developer specification for StablePay Payment API.
-
-    Source: https://docs.stablepay.co/api/payment/
-    Last updated in source page: 2026-03-31 16:37
-  contact:
-    name: StablePay
-    url: https://docs.stablepay.co/api/payment/
 servers:
   - url: https://api.stablepay.co
     description: Production
@@ -29,15 +23,116 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: "#/components/parameters/XStablePayTimestamp"
-        - $ref: "#/components/parameters/XStablePayNonce"
-        - $ref: "#/components/parameters/XStablePaySignature"
+        - name: X-StablePay-Timestamp
+          in: header
+          required: true
+          description: Unix timestamp in seconds.
+          schema:
+            type: string
+            example: "1735123456"
+        - name: X-StablePay-Nonce
+          in: header
+          required: true
+          description: Random nonce for replay protection.
+          schema:
+            type: string
+            example: 550e8400-e29b-41d4-a716-446655440000
+        - name: X-StablePay-Signature
+          in: header
+          required: true
+          description: HMAC-SHA256 signature. Format is a lowercase hex string.
+          schema:
+            type: string
+            example: 3c8f9d2a7b6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9f8e7d6c5b4a3f2e1d0
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateCheckoutSessionRequest"
+              type: object
+              required:
+                - amount
+                - currency
+                - order_id
+              properties:
+                amount:
+                  type: integer
+                  format: int64
+                  description: Payment amount in minor units.
+                  example: 6500
+                  minimum: 1
+                currency:
+                  type: string
+                  description: Currency code, e.g. USD.
+                  example: USD
+                order_id:
+                  type: string
+                  description: Unique order ID in merchant system.
+                  example: order_20250101001
+                description:
+                  type: string
+                  description: Order description.
+                line_items:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - price_data
+                    properties:
+                      price_data:
+                        type: object
+                        required:
+                          - currency
+                          - unit_amount
+                          - product_data
+                        properties:
+                          currency:
+                            type: string
+                            example: USD
+                          unit_amount:
+                            type: integer
+                            format: int64
+                            description: Unit amount in minor units.
+                            example: 5000
+                            minimum: 1
+                          product_data:
+                            type: object
+                            required:
+                              - name
+                            properties:
+                              name:
+                                type: string
+                                example: Product A
+                              description:
+                                type: string
+                      quantity:
+                        type: integer
+                        default: 1
+                        minimum: 1
+                tax_amount:
+                  type: integer
+                  format: int64
+                  description: Tax amount in minor units.
+                  minimum: 0
+                shipping_amount:
+                  type: integer
+                  format: int64
+                  description: Shipping amount in minor units.
+                  minimum: 0
+                success_url:
+                  type: string
+                  format: uri
+                cancel_url:
+                  type: string
+                  format: uri
+                user_email:
+                  type: string
+                  format: email
+                  description: End user email, persisted to metadata.user_email.
+                metadata:
+                  type: object
+                  additionalProperties:
+                    type: string
             examples:
               default:
                 value:
@@ -67,7 +162,112 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PaymentSession"
+                type: object
+                required:
+                  - id
+                  - amount_total
+                  - currency
+                  - payment_status
+                  - created
+                  - expires_at
+                properties:
+                  id:
+                    type: string
+                    description: Payment session ID.
+                    example: cs_xxxxxxxxxxxx
+                  amount_total:
+                    type: integer
+                    format: int64
+                    description: Total amount in minor units.
+                    example: 10000
+                  currency:
+                    type: string
+                    description: Currency code.
+                    example: USD
+                  payment_status:
+                    type: string
+                    description: Payment status.
+                    enum:
+                      - pending
+                      - paid
+                      - failed
+                      - expired
+                      - canceled
+                  created:
+                    type: integer
+                    format: int64
+                    description: Creation timestamp (Unix seconds).
+                  expires_at:
+                    type: integer
+                    format: int64
+                    description: Expiration timestamp (Unix seconds).
+                  url:
+                    type: string
+                    format: uri
+                    description: Checkout URL.
+                  line_items:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - price_data
+                      properties:
+                        price_data:
+                          type: object
+                          required:
+                            - currency
+                            - unit_amount
+                            - product_data
+                          properties:
+                            currency:
+                              type: string
+                              example: USD
+                            unit_amount:
+                              type: integer
+                              format: int64
+                              description: Unit amount in minor units.
+                              example: 5000
+                              minimum: 1
+                            product_data:
+                              type: object
+                              required:
+                                - name
+                              properties:
+                                name:
+                                  type: string
+                                  example: Product A
+                                description:
+                                  type: string
+                        quantity:
+                          type: integer
+                          default: 1
+                          minimum: 1
+                  tax_amount:
+                    type: integer
+                    format: int64
+                  shipping_amount:
+                    type: integer
+                    format: int64
+                  exchange_rate:
+                    type: string
+                    description: Exchange rate value, if currency conversion exists.
+                    example: "7.2500"
+                  target_currency:
+                    type: string
+                    description: Settlement currency used by end user payment.
+                    example: USDT
+                  target_amount_total:
+                    type: integer
+                    format: int64
+                    description: Settlement amount in minor units.
+                  rate_locked_at:
+                    type: integer
+                    format: int64
+                    description: Exchange rate lock timestamp (Unix seconds).
+                  metadata:
+                    type: object
+                    additionalProperties:
+                      type: string
               examples:
                 default:
                   value:
@@ -102,20 +302,43 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                type: object
+                description: Generic error response.
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Invalid request
         "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                type: object
+                description: Generic error response.
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Invalid request
         "503":
           description: Service unavailable
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
+                type: object
+                description: Generic error response.
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Invalid request
   /api/v1/checkout/sessions/{session_id}:
     get:
       tags:
@@ -126,17 +349,145 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: "#/components/parameters/SessionId"
-        - $ref: "#/components/parameters/XStablePayTimestamp"
-        - $ref: "#/components/parameters/XStablePayNonce"
-        - $ref: "#/components/parameters/XStablePaySignature"
+        - name: session_id
+          in: path
+          required: true
+          description: Payment session ID
+          schema:
+            type: string
+        - name: X-StablePay-Timestamp
+          in: header
+          required: true
+          description: Unix timestamp in seconds.
+          schema:
+            type: string
+            example: "1735123456"
+        - name: X-StablePay-Nonce
+          in: header
+          required: true
+          description: Random nonce for replay protection.
+          schema:
+            type: string
+            example: 550e8400-e29b-41d4-a716-446655440000
+        - name: X-StablePay-Signature
+          in: header
+          required: true
+          description: HMAC-SHA256 signature. Format is a lowercase hex string.
+          schema:
+            type: string
+            example: 3c8f9d2a7b6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9f8e7d6c5b4a3f2e1d0
       responses:
         "200":
           description: Query success
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PaymentSession"
+                type: object
+                required:
+                  - id
+                  - amount_total
+                  - currency
+                  - payment_status
+                  - created
+                  - expires_at
+                properties:
+                  id:
+                    type: string
+                    description: Payment session ID.
+                    example: cs_xxxxxxxxxxxx
+                  amount_total:
+                    type: integer
+                    format: int64
+                    description: Total amount in minor units.
+                    example: 10000
+                  currency:
+                    type: string
+                    description: Currency code.
+                    example: USD
+                  payment_status:
+                    type: string
+                    description: Payment status.
+                    enum:
+                      - pending
+                      - paid
+                      - failed
+                      - expired
+                      - canceled
+                  created:
+                    type: integer
+                    format: int64
+                    description: Creation timestamp (Unix seconds).
+                  expires_at:
+                    type: integer
+                    format: int64
+                    description: Expiration timestamp (Unix seconds).
+                  url:
+                    type: string
+                    format: uri
+                    description: Checkout URL.
+                  line_items:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - price_data
+                      properties:
+                        price_data:
+                          type: object
+                          required:
+                            - currency
+                            - unit_amount
+                            - product_data
+                          properties:
+                            currency:
+                              type: string
+                              example: USD
+                            unit_amount:
+                              type: integer
+                              format: int64
+                              description: Unit amount in minor units.
+                              example: 5000
+                              minimum: 1
+                            product_data:
+                              type: object
+                              required:
+                                - name
+                              properties:
+                                name:
+                                  type: string
+                                  example: Product A
+                                description:
+                                  type: string
+                        quantity:
+                          type: integer
+                          default: 1
+                          minimum: 1
+                  tax_amount:
+                    type: integer
+                    format: int64
+                  shipping_amount:
+                    type: integer
+                    format: int64
+                  exchange_rate:
+                    type: string
+                    description: Exchange rate value, if currency conversion exists.
+                    example: "7.2500"
+                  target_currency:
+                    type: string
+                    description: Settlement currency used by end user payment.
+                    example: USDT
+                  target_amount_total:
+                    type: integer
+                    format: int64
+                    description: Settlement amount in minor units.
+                  rate_locked_at:
+                    type: integer
+                    format: int64
+                    description: Exchange rate lock timestamp (Unix seconds).
+                  metadata:
+                    type: object
+                    additionalProperties:
+                      type: string
               examples:
                 default:
                   value:
@@ -175,20 +526,43 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                type: object
+                description: Generic error response.
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Invalid request
         "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                type: object
+                description: Generic error response.
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Invalid request
         "404":
           description: Session not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
+                type: object
+                description: Generic error response.
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Invalid request
   /api/v1/checkout/sessions/{session_id}/cancel:
     post:
       tags:
@@ -199,17 +573,145 @@ paths:
       security:
         - bearerAuth: []
       parameters:
-        - $ref: "#/components/parameters/SessionId"
-        - $ref: "#/components/parameters/XStablePayTimestamp"
-        - $ref: "#/components/parameters/XStablePayNonce"
-        - $ref: "#/components/parameters/XStablePaySignature"
+        - name: session_id
+          in: path
+          required: true
+          description: Payment session ID
+          schema:
+            type: string
+        - name: X-StablePay-Timestamp
+          in: header
+          required: true
+          description: Unix timestamp in seconds.
+          schema:
+            type: string
+            example: "1735123456"
+        - name: X-StablePay-Nonce
+          in: header
+          required: true
+          description: Random nonce for replay protection.
+          schema:
+            type: string
+            example: 550e8400-e29b-41d4-a716-446655440000
+        - name: X-StablePay-Signature
+          in: header
+          required: true
+          description: HMAC-SHA256 signature. Format is a lowercase hex string.
+          schema:
+            type: string
+            example: 3c8f9d2a7b6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9f8e7d6c5b4a3f2e1d0
       responses:
         "200":
           description: Cancel success
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PaymentSession"
+                type: object
+                required:
+                  - id
+                  - amount_total
+                  - currency
+                  - payment_status
+                  - created
+                  - expires_at
+                properties:
+                  id:
+                    type: string
+                    description: Payment session ID.
+                    example: cs_xxxxxxxxxxxx
+                  amount_total:
+                    type: integer
+                    format: int64
+                    description: Total amount in minor units.
+                    example: 10000
+                  currency:
+                    type: string
+                    description: Currency code.
+                    example: USD
+                  payment_status:
+                    type: string
+                    description: Payment status.
+                    enum:
+                      - pending
+                      - paid
+                      - failed
+                      - expired
+                      - canceled
+                  created:
+                    type: integer
+                    format: int64
+                    description: Creation timestamp (Unix seconds).
+                  expires_at:
+                    type: integer
+                    format: int64
+                    description: Expiration timestamp (Unix seconds).
+                  url:
+                    type: string
+                    format: uri
+                    description: Checkout URL.
+                  line_items:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - price_data
+                      properties:
+                        price_data:
+                          type: object
+                          required:
+                            - currency
+                            - unit_amount
+                            - product_data
+                          properties:
+                            currency:
+                              type: string
+                              example: USD
+                            unit_amount:
+                              type: integer
+                              format: int64
+                              description: Unit amount in minor units.
+                              example: 5000
+                              minimum: 1
+                            product_data:
+                              type: object
+                              required:
+                                - name
+                              properties:
+                                name:
+                                  type: string
+                                  example: Product A
+                                description:
+                                  type: string
+                        quantity:
+                          type: integer
+                          default: 1
+                          minimum: 1
+                  tax_amount:
+                    type: integer
+                    format: int64
+                  shipping_amount:
+                    type: integer
+                    format: int64
+                  exchange_rate:
+                    type: string
+                    description: Exchange rate value, if currency conversion exists.
+                    example: "7.2500"
+                  target_currency:
+                    type: string
+                    description: Settlement currency used by end user payment.
+                    example: USDT
+                  target_amount_total:
+                    type: integer
+                    format: int64
+                    description: Settlement amount in minor units.
+                  rate_locked_at:
+                    type: integer
+                    format: int64
+                    description: Exchange rate lock timestamp (Unix seconds).
+                  metadata:
+                    type: object
+                    additionalProperties:
+                      type: string
               examples:
                 default:
                   value:
@@ -231,241 +733,46 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                type: object
+                description: Generic error response.
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Invalid request
         "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                type: object
+                description: Generic error response.
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Invalid request
         "404":
           description: Session not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
+                type: object
+                description: Generic error response.
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Invalid request
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: API Key
-
-  parameters:
-    SessionId:
-      name: session_id
-      in: path
-      required: true
-      description: Payment session ID
-      schema:
-        type: string
-
-    XStablePayTimestamp:
-      name: X-StablePay-Timestamp
-      in: header
-      required: true
-      description: Unix timestamp in seconds.
-      schema:
-        type: string
-        example: "1735123456"
-
-    XStablePayNonce:
-      name: X-StablePay-Nonce
-      in: header
-      required: true
-      description: Random nonce for replay protection.
-      schema:
-        type: string
-        example: "550e8400-e29b-41d4-a716-446655440000"
-
-    XStablePaySignature:
-      name: X-StablePay-Signature
-      in: header
-      required: true
-      description: HMAC-SHA256 signature. Format is a lowercase hex string.
-      schema:
-        type: string
-        example: "3c8f9d2a7b6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9f8e7d6c5b4a3f2e1d0"
-
-  schemas:
-    CreateCheckoutSessionRequest:
-      type: object
-      required:
-        - amount
-        - currency
-        - order_id
-      properties:
-        amount:
-          type: integer
-          format: int64
-          description: Payment amount in minor units.
-          example: 6500
-          minimum: 1
-        currency:
-          type: string
-          description: Currency code, e.g. USD.
-          example: USD
-        order_id:
-          type: string
-          description: Unique order ID in merchant system.
-          example: order_20250101001
-        description:
-          type: string
-          description: Order description.
-        line_items:
-          type: array
-          items:
-            $ref: "#/components/schemas/LineItem"
-        tax_amount:
-          type: integer
-          format: int64
-          description: Tax amount in minor units.
-          minimum: 0
-        shipping_amount:
-          type: integer
-          format: int64
-          description: Shipping amount in minor units.
-          minimum: 0
-        success_url:
-          type: string
-          format: uri
-        cancel_url:
-          type: string
-          format: uri
-        user_email:
-          type: string
-          format: email
-          description: End user email, persisted to metadata.user_email.
-        metadata:
-          type: object
-          additionalProperties:
-            type: string
-
-    PaymentSession:
-      type: object
-      required:
-        - id
-        - amount_total
-        - currency
-        - payment_status
-        - created
-        - expires_at
-      properties:
-        id:
-          type: string
-          description: Payment session ID.
-          example: cs_xxxxxxxxxxxx
-        amount_total:
-          type: integer
-          format: int64
-          description: Total amount in minor units.
-          example: 10000
-        currency:
-          type: string
-          description: Currency code.
-          example: USD
-        payment_status:
-          type: string
-          description: Payment status.
-          enum:
-            - pending
-            - paid
-            - failed
-            - expired
-            - canceled
-        created:
-          type: integer
-          format: int64
-          description: Creation timestamp (Unix seconds).
-        expires_at:
-          type: integer
-          format: int64
-          description: Expiration timestamp (Unix seconds).
-        url:
-          type: string
-          format: uri
-          description: Checkout URL.
-        line_items:
-          type: array
-          items:
-            $ref: "#/components/schemas/LineItem"
-        tax_amount:
-          type: integer
-          format: int64
-        shipping_amount:
-          type: integer
-          format: int64
-        exchange_rate:
-          type: string
-          description: Exchange rate value, if currency conversion exists.
-          example: "7.2500"
-        target_currency:
-          type: string
-          description: Settlement currency used by end user payment.
-          example: USDT
-        target_amount_total:
-          type: integer
-          format: int64
-          description: Settlement amount in minor units.
-        rate_locked_at:
-          type: integer
-          format: int64
-          description: Exchange rate lock timestamp (Unix seconds).
-        metadata:
-          type: object
-          additionalProperties:
-            type: string
-
-    LineItem:
-      type: object
-      required:
-        - price_data
-      properties:
-        price_data:
-          $ref: "#/components/schemas/PriceData"
-        quantity:
-          type: integer
-          default: 1
-          minimum: 1
-
-    PriceData:
-      type: object
-      required:
-        - currency
-        - unit_amount
-        - product_data
-      properties:
-        currency:
-          type: string
-          example: USD
-        unit_amount:
-          type: integer
-          format: int64
-          description: Unit amount in minor units.
-          example: 5000
-          minimum: 1
-        product_data:
-          $ref: "#/components/schemas/ProductData"
-
-    ProductData:
-      type: object
-      required:
-        - name
-      properties:
-        name:
-          type: string
-          example: Product A
-        description:
-          type: string
-
-    ErrorResponse:
-      type: object
-      description: Generic error response.
-      properties:
-        error:
-          type: object
-          properties:
-            message:
-              type: string
-              example: Invalid request
