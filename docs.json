@@ -25,7 +25,7 @@
     },
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "产品文档",
         "groups": [
           {
             "group": "产品文档",
@@ -51,7 +51,7 @@
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "API 指南",
         "groups": [
           {
             "group": "支付服务",
